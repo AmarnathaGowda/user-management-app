@@ -1,0 +1,42 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "User Management API",
+        "description": "API for managing users",
+        "version": "1.0.0"
+    },
+    "basePath": "/",
+    "schemes": ["http"],
+    "paths": {
+        "/users": {
+            "get": {
+                "summary": "List all users",
+                "responses": {
+                    "200": {
+                        "description": "Successful response"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Create a new user",
+                "parameters": [{
+                    "in": "body",
+                    "name": "body",
+                    "required": true,
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "username": {"type": "string"},
+                            "email": {"type": "string"}
+                        }
+                    }
+                }],
+                "responses": {
+                    "201": {
+                        "description": "User created successfully"
+                    }
+                }
+            }
+        }
+    }
+}
