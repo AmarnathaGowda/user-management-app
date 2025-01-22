@@ -1,42 +1,163 @@
 {
     "swagger": "2.0",
     "info": {
-        "title": "User Management API",
-        "description": "API for managing users",
-        "version": "1.0.0"
+      "title": "User Management API",
+      "description": "API for managing users with CRUD operations",
+      "version": "1.0.0"
     },
     "basePath": "/",
     "schemes": ["http"],
     "paths": {
-        "/users": {
-            "get": {
-                "summary": "List all users",
-                "responses": {
-                    "200": {
-                        "description": "Successful response"
-                    }
+      "/users": {
+        "get": {
+          "summary": "Get all users",
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "List of users",
+              "schema": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/User"
                 }
-            },
-            "post": {
-                "summary": "Create a new user",
-                "parameters": [{
-                    "in": "body",
-                    "name": "body",
-                    "required": true,
-                    "schema": {
-                        "type": "object",
-                        "properties": {
-                            "username": {"type": "string"},
-                            "email": {"type": "string"}
-                        }
-                    }
-                }],
-                "responses": {
-                    "201": {
-                        "description": "User created successfully"
-                    }
-                }
+              }
             }
+          }
+        },
+        "post": {
+          "summary": "Create a new user",
+          "produces": ["application/json"],
+          "consumes": ["application/json"],
+          "parameters": [
+            {
+              "in": "body",
+              "name": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/UserInput"
+              }
+            }
+          ],
+          "responses": {
+            "201": {
+              "description": "User created successfully",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            },
+            "400": {
+              "description": "Invalid input",
+              "schema": {
+                "$ref": "#/definitions/Error"
+              }
+            }
+          }
         }
+      },
+      "/users/{user_id}": {
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "description": "ID of the user"
+          }
+        ],
+        "put": {
+          "summary": "Update an existing user",
+          "produces": ["application/json"],
+          "consumes": ["application/json"],
+          "parameters": [
+            {
+              "in": "body",
+              "name": "body",
+              "required": true,
+              "schema": {
+                "$ref": "#/definitions/UserInput"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User updated successfully",
+              "schema": {
+                "$ref": "#/definitions/User"
+              }
+            },
+            "404": {
+              "description": "User not found",
+              "schema": {
+                "$ref": "#/definitions/Error"
+              }
+            }
+          }
+        },
+        "delete": {
+          "summary": "Delete a user",
+          "produces": ["application/json"],
+          "responses": {
+            "200": {
+              "description": "User deleted successfully",
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found",
+              "schema": {
+                "$ref": "#/definitions/Error"
+              }
+            }
+          }
+        }
+      }
+    },
+    "definitions": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "User ID"
+          },
+          "username": {
+            "type": "string",
+            "description": "User's username"
+          },
+          "email": {
+            "type": "string",
+            "description": "User's email"
+          }
+        }
+      },
+      "UserInput": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "description": "User's username"
+          },
+          "email": {
+            "type": "string",
+            "description": "User's email"
+          }
+        },
+        "required": ["username", "email"]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          }
+        }
+      }
     }
-}
+  }

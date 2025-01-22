@@ -3,10 +3,12 @@ import React, { useState, useEffect } from 'react';
 const API_BASE_URL = 'http://localhost:5000';
 
 function App() {
-  const [users, setUsers] = useState([]); // Remove <User[]>
+  const [users, setUsers] = useState([]);
   const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
-  const [error, setError] = useState(null); // Remove <string | null>
+  const [error, setError] = useState(null);
+  const [editingUser, setEditingUser] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -26,11 +28,17 @@ function App() {
     }
   };
 
-  const handleSubmit = async (e) => { // Remove type annotation
+  const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(`${API_BASE_URL}/users`, {
-        method: 'POST',
+      const url = isEditing 
+        ? `${API_BASE_URL}/users/${editingUser.id}`
+        : `${API_BASE_URL}/users`;
+
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
         headers: {
           'Content-Type': 'application/json',
         },
@@ -39,18 +47,54 @@ function App() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to create user');
+        throw new Error(errorData.error || `Failed to ${isEditing ? 'update' : 'create'} user`);
       }
 
-      const newUser = await response.json();
       fetchUsers();
-      setUsername('');
-      setEmail('');
-      setError(null);
+      resetForm();
     } catch (error) {
-      console.error('Error creating user', error);
+      console.error(`Error ${isEditing ? 'updating' : 'creating'} user`, error);
       setError(error.message);
     }
+  };
+
+  const handleEdit = (user) => {
+    setEditingUser(user);
+    setUsername(user.username);
+    setEmail(user.email);
+    setIsEditing(true);
+    setError(null);
+  };
+
+  const handleDelete = async (userId) => {
+    if (!window.confirm('Are you sure you want to delete this user?')) {
+      return;
+    }
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to delete user');
+      }
+
+      fetchUsers();
+      setError(null);
+    } catch (error) {
+      console.error('Error deleting user', error);
+      setError(error.message);
+    }
+  };
+
+  const resetForm = () => {
+    setUsername('');
+    setEmail('');
+    setEditingUser(null);
+    setIsEditing(false);
+    setError(null);
   };
 
   return (
@@ -82,10 +126,19 @@ function App() {
         />
         <button 
           type="submit" 
-          className="bg-blue-500 text-white p-2 rounded"
+          className="bg-blue-500 text-white p-2 rounded mr-2"
         >
-          Add User
+          {isEditing ? 'Update User' : 'Add User'}
         </button>
+        {isEditing && (
+          <button 
+            type="button" 
+            onClick={resetForm}
+            className="bg-gray-500 text-white p-2 rounded"
+          >
+            Cancel
+          </button>
+        )}
       </form>
 
       <div>
@@ -95,8 +148,22 @@ function App() {
         ) : (
           <ul>
             {users.map((user) => (
-              <li key={user.id} className="border-b py-2">
-                {user.username} ({user.email})
+              <li key={user.id} className="border-b py-2 flex justify-between items-center">
+                <span>{user.username} ({user.email})</span>
+                <div>
+                  <button
+                    onClick={() => handleEdit(user)}
+                    className="bg-yellow-500 text-white p-2 rounded mr-2"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    onClick={() => handleDelete(user.id)}
+                    className="bg-red-500 text-white p-2 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
               </li>
             ))}
           </ul>
